@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teste — Intermediário de Crédito (Exame Completo)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .choice:hover{filter:brightness(0.95)}
+    .correct{outline:2px solid #16a34a}
+    .incorrect{outline:2px solid #dc2626}
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="max-w-6xl mx-auto p-6">
+    <h1 class="text-3xl md:text-4xl font-bold">
+      Exame — Intermediário de Crédito
+      <span id="testBadge" class="ml-3 px-2 py-1 rounded-full text-xs hidden"></span>
+    </h1>
+    <p class="mt-2 text-slate-600">Múltipla escolha com correção automática, modo treino/exame, filtro por temas e tempo limite.</p>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6">
+    <section class="mb-6 grid gap-4 md:grid-cols-3">
+      <div class="p-4 bg-white rounded-2xl shadow">
+        <label class="block text-sm font-medium mb-1">Modo</label>
+        <select id="mode" class="w-full border rounded-lg p-2">
+          <option value="practice">Treino (feedback imediato)</option>
+          <option value="exam">Exame (feedback no fim)</option>
+        </select>
+      </div>
+
+      <div class="p-4 bg-white rounded-2xl shadow">
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-sm font-medium">Temas</label>
+          <button id="toggleAllTopics" class="text-xs underline">Selecionar todos</button>
+        </div>
+        <div id="topicList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm"></div>
+      </div>
+
+      <div class="p-4 bg-white rounded-2xl shadow flex flex-col gap-3">
+        <div class="flex items-center gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">N.º de perguntas</label>
+            <input id="numQuestions" type="number" min="5" max="80" value="50" class="w-28 border rounded-lg p-2" />
+            <p class="text-xs text-slate-500 mt-1">Disponíveis (após filtro): <span id="totalCount">—</span></p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Tempo máximo (min)</label>
+            <input id="timeLimit" type="number" min="5" max="180" value="90" class="w-28 border rounded-lg p-2" />
+            <p class="text-xs text-slate-500 mt-1">Exame termina ao esgotar o tempo.</p>
+          </div>
+        </div>
+        <div class="flex items-end justify-between">
+          <button id="startBtn" class="px-4 py-2 rounded-xl bg-black text-white">Começar</button>
+          <div id="timer" class="text-sm font-medium"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quiz" class="hidden">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="text-sm text-slate-600">Pergunta <span id="qIndex">1</span> de <span id="qTotal">—</span></div>
+      </div>
+      <div id="card" class="bg-white rounded-2xl shadow p-6">
+        <h2 id="questionText" class="text-lg font-semibold"></h2>
+        <ul id="choices" class="mt-4 grid gap-3"></ul>
+        <div id="explanation" class="mt-4 hidden p-3 rounded-lg bg-slate-50 text-sm text-slate-700"></div>
+        <div class="mt-6 flex justify-between">
+          <button id="prevBtn" class="px-4 py-2 rounded-xl border">Anterior</button>
+          <button id="nextBtn" class="px-4 py-2 rounded-xl bg-black text-white">Seguinte</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="hidden">
+      <div class="bg-white rounded-2xl shadow p-6">
+        <h2 class="text-2xl font-bold">Resultados</h2>
+        <p class="mt-2 text-slate-700">Pontuação: <span id="score"></span></p>
+        <p class="text-slate-600 text-sm">Tempo utilizado: <span id="timeUsed"></span></p>
+        <div id="review" class="mt-6 grid gap-4"></div>
+        <div class="mt-6 flex items-center gap-3">
+          <button id="retryBtn" class="px-4 py-2 rounded-xl border">Tentar novamente</button>
+          <button id="exportBtn" class="px-4 py-2 rounded-xl bg-emerald-600 text-white">Exportar correção (.txt)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="max-w-6xl mx-auto p-6 text-xs text-slate-500">
+    Feito para estudo. Este teste não substitui a legislação ou documentação oficial.
+  </footer>
+
+<script>
+'use strict';
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr;}
+
+// ——————————— BANCO DE QUESTÕES ———————————
+// Formato: { id, topic, q, choices:[...], answer: index, explain }
+const BANK = [];
+(function seed(){
+  const push=(o)=>BANK.push(o);
+  // (1–20) base
+  push({id:1, topic:'Crédito em geral', q:'Qual das opções descreve melhor o TAEG?', choices:['Taxa anual nominal aplicada ao capital em dívida.','Custo total do crédito para o consumidor expresso em percentagem anual do montante do crédito.','Valor das comissões iniciais pagas no momento da contratação.','Taxa de juro variável indexada à Euribor.'], answer:1, explain:'A TAEG inclui juros, comissões, impostos e outros encargos obrigatórios, expressando o custo total anual do crédito.'});
+  push({id:2, topic:'Crédito em geral', q:"No crédito à habitação com taxa variável, o 'indexante' mais comum em Portugal é:", choices:['Taxa Fixa de Referência (TFR)','Euribor a prazos (ex.: 3, 6, 12 meses)','Libor a 6 meses','Taxa Diretora da FED'], answer:1, explain:'A Euribor é o indexante padrão; a prestação revê-se na periodicidade do indexante escolhido.'});
+  push({id:3, topic:'Crédito em geral', q:'O que é o MTIC?', choices:['Montante Total Imputado ao Consumidor: soma do montante do empréstimo com todos os custos.','Montante Total de Juros Contratuais.','Margem Total do Intermediário de Crédito.','Montante Tributável de Impostos e Comissões.'], answer:0, explain:'Reflete o valor total que o consumidor pagará ao longo do contrato, capital incluído.'});
+  push({id:4, topic:'Crédito em geral', q:'No método francês (prestações constantes), a prestação:', choices:['Diminui ao longo do tempo.','Aumenta ao longo do tempo.','Mantém-se constante; os juros descem e o capital sobe na composição.','É sempre igual à componente de juros.'], answer:2, explain:'A prestação é constante; a proporção de juros decresce à medida que se amortiza capital.'});
+  push({id:5, topic:'Mercado PT', q:'Quem supervisiona os intermediários de crédito em Portugal?', choices:['Banco de Portugal','CMVM','ASF','Direção-Geral do Consumidor'], answer:0, explain:'O Banco de Portugal autoriza e supervisiona a intermediação de crédito.'});
+  push({id:6, topic:'Mercado PT', q:'A Central de Responsabilidades de Crédito (CRC) serve para:', choices:['Definir taxas máximas.','Registar responsabilidades de crédito dos clientes.','Emitir seguros de crédito.','Calcular a TAEG.'], answer:1, explain:'Agrega informação de responsabilidades para avaliação de risco.'});
+  push({id:7, topic:'Mercado PT', q:'Limites máximos de TAEG no crédito ao consumo são publicados:', choices:['Semestralmente pela CMVM.','Mensalmente pelo BdP.','Trimestralmente pelo BdP.','Anualmente pelo MF.'], answer:2, explain:'O Banco de Portugal publica trimesralmente por categoria de contrato.'});
+  push({id:8, topic:'Mercado PT', q:'A FINE é:', choices:['Documento comercial sem força.','Proposta do intermediário.','Documento padronizado com informações essenciais para comparar propostas.','Relatório interno de risco.'], answer:2, explain:'Permite comparar TAEG, MTIC, comissões, prazos e outras condições.'});
+  push({id:9, topic:'Regimes bonificados', q:'A bonificação traduz-se em:', choices:['Redução de spread pelo cliente.','Apoio estatal que reduz a taxa efetiva segundo critérios.','Isenção de comissões.','Capitalização de juros.'], answer:1, explain:'Apoio do Estado reduzindo a taxa efetiva quando elegível.'});
+  push({id:10, topic:'Regimes bonificados', q:"Quando a taxa sobe acima do 'tecto' do regime, a prestação:", choices:['Aumenta ilimitadamente.','É limitada pelo tecto/limiar conforme regras.','Passa a taxa fixa.','Fica em carência de capital.'], answer:1, explain:'Limiares atenuam subidas conforme diploma.'});
+  push({id:11, topic:'Regimes bonificados', q:'Cálculo habitual da prestação bonificada:', choices:['Aplicar taxa de mercado e subtrair bonificação na prestação.','Usar média anual.','Ignorar comissões.','Usar só taxa nominal sem spread.'], answer:0, explain:'Calcula-se prestação a taxa de mercado e aplica-se bonificação definida.'});
+  push({id:12, topic:'Regimes bonificados', q:'Quem valida elegibilidade e aplica bonificação?', choices:['Seguradora','CRC','Instituição de crédito/entidade gestora','Intermediário sem verificação'], answer:2, explain:'A instituição de crédito valida e aplica segundo o regime.'});
+  push({id:13, topic:'Seguro de vida', q:'Cobertura típica exigida:', choices:['IAD e Morte','Doença grave e desemprego','Apenas morte','RC familiar'], answer:0, explain:'Morte e IAD são comuns.'});
+  push({id:14, topic:'Seguro de vida', q:'Beneficiário credor habitual:', choices:['Segurado','Herdeiros','Instituição de crédito até ao montante em dívida','Estado'], answer:2, explain:'A instituição é beneficiária até ao capital em dívida.'});
+  push({id:15, topic:'Seguro de vida', q:'Underwriting pode incluir:', choices:['Questionário de saúde e exames conforme capitais/idade','Só verificação da FINE','Simulação da TAEG','Consulta obrigatória da CRC'], answer:0, explain:'Para precificação/aceitação de risco.'});
+  push({id:16, topic:'Seguro de vida', q:"'Incontestabilidade' significa:", choices:['Apólice nunca anulável','Após período e sem dolo, não se contesta declarações','Caduca ao fim de 1 ano','Prémio fixo para sempre'], answer:1, explain:'Após p.ex. 2 anos e sem fraude, não é contestada.'});
+  push({id:17, topic:'Glossário', q:'Spread é:', choices:['Taxa base do BCE','Margem do banco adicionada ao indexante','Imposto sobre juros','Comissão de abertura'], answer:1, explain:'Margem comercial adicionada ao indexante.'});
+  push({id:18, topic:'Glossário', q:'Carência de capital é:', choices:['Suspensão total','Pagamento só de juros por um período','Isenção de comissões','Aumento do prazo'], answer:1, explain:'Sem amortizar capital durante o período.'});
+  push({id:19, topic:'Glossário', q:'TIN é:', choices:['Taxa com todos os encargos','Taxa anual sobre capital, sem comissões/impostos','Taxa efetiva anual (TAEG)','Taxa mensal obrigatória'], answer:1, explain:'TIN não inclui comissões/impostos.'});
+  push({id:20, topic:'Glossário', q:'LTV representa:', choices:['Prestação/rendimento','Capital em dívida/valor do imóvel','Total de juros','Valor máximo do MTIC'], answer:1, explain:'Rácio dívida/garantia.'});
+
+  // extras 21–44 (abreviado mas completo)
+  const extras=[
+    ['Deveres do intermediário','Antes da contratação deve:',['Celebrar contrato pelo cliente','Prestar informação clara (FINE) e avaliar adequabilidade','Conceder bonificação automática','Isentar imposto do selo'],1,'Informar, comparar e avaliar suitability.'],
+    ['Deveres do intermediário','Remunerações:',['Omitir incentivos','Divulgar comissões e quem as paga','Cobrar sempre ao cliente','Fixar TAEG'],1,'Transparência obrigatória.'],
+    ['Deveres do intermediário','RGPD implica:',['Recolher tudo','Partilhar sem consentimento','Minimização, licitude, transparência e direitos do titular','Evitar informar finalidades'],2,'Cumprir princípios e direitos.'],
+    ['Deveres do intermediário','Solvabilidade considera:',['Só idade','Só LTV','Rendimentos, encargos, CRC e estabilidade','Só valor do imóvel'],2,'Capacidade de cumprir obrigações.'],
+    ['Crédito em geral','A TAN é composta por:',['Indexante + spread','TAEG + comissões','Impostos + prémios','Euribor + MTIC'],0,'Indexante + spread.'],
+    ['Mercado PT','A FINE deve ser entregue:',['Após escritura','Antes da contratação','Só se o cliente pedir','Com a apólice'],1,'É pré-contratual.'],
+    ['Glossário','DSTI mede:',['Prestação/rendimento','Capital/valor do imóvel','Comissões anuais','Imposto do selo'],0,'Encargos com dívida / rendimento.'],
+    ['Seguro de vida','Capital decrescente ligado ao crédito:',['Constante','Acompanha capital em dívida','Aumenta','> MTIC'],1,'Alinha com amortização.'],
+    ['Regimes bonificados','Condição típica de elegibilidade:',['Ser cliente há 1 mês','Limites de rendimento e HPP','Ter automóvel','Abrir conta prémio'],1,'Critérios socioeconómicos e finalidade.'],
+    ['Crédito em geral','Se a Euribor sobe e o spread mantém:',['Diminui','Mantém','Aumenta','Zera'],2,'TAN = indexante + spread.'],
+    ['Mercado PT','Consulta à CRC serve para:',['MTIC','Solvabilidade','Valor do imóvel','Emitir apólice'],1,'Avaliar risco.'],
+    ['Deveres do intermediário','Conflitos de interesses:',['Ignorar','Gerir e divulgar','Resolver a favor do parceiro','Manter secretos'],1,'Gerir e divulgar.'],
+    ['Glossário','TAER refere-se a:',['Efetiva revista','Efetiva de rendimento (depósitos)','Cartões refeição','Encargos recorrentes'],1,'Rendimento anual de depósitos.'],
+    ['Crédito em geral','Amortização parcial no método francês:',['Prestação aumenta','Pode reduzir prestação ou encurtar prazo','TAN altera-se','TAEG cai para metade'],1,'Depende da opção contratual.'],
+    ['Seguro de vida','Exclusões comuns:',['Doenças súbitas','Suicídio em período inicial e riscos não declarados','Falecimento natural','Acidente viação'],1,'Incluem suicídio inicial, guerra, etc.'],
+    ['Mercado PT','Tetos de TAEG visam:',['Aumentar margens','Prevenir usura','TAEG única','Eliminar promoções'],1,'Proteção do consumidor.'],
+    ['Deveres do intermediário','Documentação pré-contratual inclui:',['Publicidade','FINE, custos/TAEG/MTIC, simulações, política de dados','Relatório comercial','Orçamento de Estado'],1,'Conjunto informativo padronizado.'],
+    ['Glossário','Comissão de amortização antecipada (taxa variável):',['Proibida','Existe com limites legais','Livre','Só cartões'],1,'Há limites legais.'],
+    ['Regimes bonificados','Perda de elegibilidade implica:',['Mantém bonificação','Cessa bonificação e aplicam-se condições de mercado','Extingue contrato','Prestação zero'],1,'Regresso a condições standard.'],
+    ['Crédito em geral','Comissão de processamento é:',['Imposto','Encargo periódico de gestão','Multa','Spread'],1,'Gestão do contrato.'],
+    ['Mercado PT','Avaliação do imóvel serve para:',['MTIC','LTV e valor de garantia','DSTI','Substituir solvabilidade'],1,'Suporta rácios e limites.'],
+    ['Deveres do intermediário','Adequabilidade verifica:',['Compatibilidade com objetivos, risco e situação financeira','Cor preferida','Taxa do BCE','Revenda do imóvel'],0,'Suitability.'],
+    ['Seguro de vida','Seguradora diferente da do banco:',['Banco recusa automaticamente','Banco deve aceitar se cumpre coberturas e beneficiário credor','Prémio zero','Perde IAD'],1,'Livre escolha com requisitos.'],
+    ['Glossário','Euribor a 6 meses implica:',['Revisão a cada 6 meses','Prestação diária','Spread variável','Isenção do selo'],0,'Revisão semestral.']
+  ];
+  let id=21; extras.forEach(e=>push({id:id++, topic:e[0], q:e[1], choices:e[2], answer:e[3], explain:e[4]}));
+
+  // (45–60) novas
+  const novas=[
+    ['Regimes bonificados','TRCB significa:',['Taxa de Referência para Cálculo de Bonificações','Taxa de Rendimento Corrigido Bancário','Taxa Real de Custos Bancários','Taxa de Revisão do Crédito Bonificado'],0,'Taxa usada para calcular a bonificação.'],
+    ['Regimes bonificados','Cálculo típico da TRCB baseia-se em:',['Euribor 6M do mês anterior + 0,5%','Euribor 12M - 0,25%','Taxa BCE + 2%','Taxa fixa BdP'],0,'Prática histórica dos regimes.'],
+    ['Regimes bonificados','Bonificação decrescente:',['Percentagem aumenta','Percentagem reduz ao longo do prazo','Taxa constante','Sem prazo'],1,'Apoio do Estado diminui com o tempo.'],
+    ['Garantias','Hipoteca confere:',['Preferência de pagamento pelo valor do imóvel','Posse imediata','Transferência automática da propriedade','Isenção fiscal'],0,'Preferência sobre o bem dado em garantia.'],
+    ['Garantias','Aval é:',['Garantia pessoal solidária em título de crédito','Imposto','Encargo de abertura','Hipoteca parcial'],0,'Avalista responde solidariamente.'],
+    ['Garantias','Consignação de rendimentos:',['Atribuição ao credor dos rendimentos de certos bens','Venda forçada','Isenção fiscal','Dação em pagamento'],0,'Rendimentos afetados ao pagamento.'],
+    ['Crédito em geral','Prestações progressivas:',['Constantes','Aumentam ao longo do prazo','Diminuem sempre','Substituem amortização'],1,'Crescimento programado.'],
+    ['Crédito em geral','Prestações constantes com bonificação a cair:',['Estado paga mais com o tempo','Estado paga menos; prestação do cliente sobe','Capital não é amortizado','Não se aplica'],1,'Bonificação cai ⇒ prestação sobe.'],
+    ['Seguro de vida','Contrato associado cessa:',['Quando segurado quiser','Com o crédito, salvo sinistro','Após 10 anos','Só se incumprimento'],1,'Cessa com o crédito salvo sinistro.'],
+    ['Seguro de vida','Capital seguro deve ser:',['Superior','Inferior','Igual ao capital em dívida','Livre'],2,'Acompanha a dívida.'],
+    ['Seguro de vida','Pluralidade de mutuários:',['Sempre seguros separados','Cobertura repartida (ex.: 50%+50%) totalizando 100%','Só um seguro','Cobertura total 30%'],1,'Soma deve cobrir 100%.'],
+    ['Garantias','Fiança (contrato comercial):',['Responsabilidade subsidiária com benefício de excussão','Responsabilidade solidária; sem benefício de excussão','Só o devedor responde','Extingue a hipoteca'],1,'No mútuo bancário (ato comercial), a fiança é solidária.'],
+    ['Garantias','Penhor mercantil de direitos exige:',['Entrega física do bem','Forma/publicidade da transmissão do direito empenhado','Escritura pública sempre','Nada'],1,'Segue a forma/publicidade do direito.'],
+    ['Mercado PT','Comissões proibidas (habitação/consumo) incluem:',['Processamento de prestações (pós 01/01/2021)','Emissão distrate e certas declarações','Renegociação de spread ou prazo','Todas as anteriores'],3,'Diploma recente vedou estas comissões.'],
+    ['Crédito em geral','Prazo do contrato afeta:',['Nada','Risco e carga de juros totais','Só o MTIC','A cor do contrato'],1,'Prazos longos aumentam juros totais.'],
+    ['Mercado PT','Planos de amortização usuais:',['Constantes, progressivas, mistas','Só bullet','Só balloon','Só bullet anual'],0,'Modalidades mais comuns.']
+  ];
+  novas.forEach((e,i)=>push({id:45+i, topic:e[0], q:e[1], choices:e[2], answer:e[3], explain:e[4]}));
+})();
+
+// ——————————— SELF-TESTS (testes automáticos) ———————————
+function runSelfTests(){
+  const failures=[];
+  // T1: banco tem tamanho esperado e >0
+  if(!(BANK.length>=44)) failures.push(`T1: Tamanho inesperado do banco (${BANK.length}).`);
+  // T2: cada questão tem 4 escolhas e índice correto
+  BANK.forEach((q,idx)=>{
+    if(!q || typeof q.q!=="string" || !Array.isArray(q.choices)) failures.push(`T2.${idx}: Formato inválido.`);
+    if(q.choices.length!==4) failures.push(`T2.${idx}: Nº de escolhas != 4.`);
+    if(!(Number.isInteger(q.answer) && q.answer>=0 && q.answer<4)) failures.push(`T2.${idx}: Índice de resposta inválido.`);
+    if(!q.explain) failures.push(`T2.${idx}: Falta explicação.`);
+  });
+  // T3: shuffle preserva itens
+  const arr=[1,2,3,4,5]; const sh=shuffle([...arr]);
+  const sameLen = sh.length===arr.length;
+  const sameSet = arr.every(v=>sh.includes(v)) && sh.every(v=>arr.includes(v));
+  if(!sameLen || !sameSet) failures.push('T3: shuffle não preserva elementos.');
+  // T4: temas não vazios
+  const topics = Array.from(new Set(BANK.map(q=>q.topic)));
+  if(topics.length===0) failures.push('T4: Nenhum tema detectado.');
+  return {ok: failures.length===0, failures};
+}
+
+// ——————————— ESTADO ———————————
+let questions=[], current=0, answers=[], startTime=null, mode='practice', deadline=null, finishedByTimeout=false;
+
+// ——————————— ELEMENTOS ———————————
+const els = {
+  totalCount: document.getElementById('totalCount'),
+  startBtn: document.getElementById('startBtn'),
+  numQuestions: document.getElementById('numQuestions'),
+  mode: document.getElementById('mode'),
+  quiz: document.getElementById('quiz'),
+  card: document.getElementById('card'),
+  qIndex: document.getElementById('qIndex'),
+  qTotal: document.getElementById('qTotal'),
+  questionText: document.getElementById('questionText'),
+  choices: document.getElementById('choices'),
+  explanation: document.getElementById('explanation'),
+  prevBtn: document.getElementById('prevBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  timer: document.getElementById('timer'),
+  results: document.getElementById('results'),
+  score: document.getElementById('score'),
+  review: document.getElementById('review'),
+  retryBtn: document.getElementById('retryBtn'),
+  exportBtn: document.getElementById('exportBtn'),
+  timeLimit: document.getElementById('timeLimit'),
+  topicList: document.getElementById('topicList'),
+  toggleAllTopics: document.getElementById('toggleAllTopics'),
+  timeUsed: document.getElementById('timeUsed'),
+  testBadge: document.getElementById('testBadge')
+};
+
+// ——————————— TEMAS ———————————
+const ALL_TOPICS = Array.from(new Set(BANK.map(q=>q.topic)));
+function renderTopics(){
+  els.topicList.innerHTML='';
+  ALL_TOPICS.forEach(t=>{
+    const id='t_'+t.split(' ').join('_');
+    const label=document.createElement('label');
+    label.className='flex items-center gap-2';
+    label.innerHTML='<input type="checkbox" class="topic" id="'+id+'" value="'+t+'" checked><span>'+t+'</span>';
+    els.topicList.appendChild(label);
+  });
+}
+renderTopics();
+
+function getSelectedTopics(){
+  return Array.from(document.querySelectorAll('input.topic:checked')).map(el=>el.value);
+}
+
+els.toggleAllTopics.addEventListener('click', ()=>{
+  const boxes=[...document.querySelectorAll('input.topic')];
+  const someUnchecked=boxes.some(b=>!b.checked);
+  boxes.forEach(b=>b.checked=someUnchecked);
+  updateTotalCount();
+});
+
+['change','input'].forEach(ev=>{
+  els.numQuestions.addEventListener(ev, updateTotalCount);
+  els.timeLimit.addEventListener(ev, updateTotalCount);
+  els.topicList.addEventListener(ev, updateTotalCount, true);
+});
+
+function updateTotalCount(){
+  const topics=getSelectedTopics();
+  const available=BANK.filter(q=>topics.includes(q.topic)).length;
+  els.totalCount.textContent=available;
+}
+updateTotalCount();
+
+els.mode.addEventListener('change', e=>{ mode=e.target.value; });
+
+// Mostrar resultado dos self-tests
+(function(){
+  const t=runSelfTests();
+  els.testBadge.classList.remove('hidden');
+  if(t.ok){
+    els.testBadge.textContent='Self‑tests: OK';
+    els.testBadge.className+=' bg-emerald-100 text-emerald-700';
+  } else {
+    els.testBadge.textContent='Self‑tests: FAIL ('+t.failures.length+')';
+    els.testBadge.className+=' bg-rose-100 text-rose-700';
+    console.group('Self‑tests — detalhes');
+    t.failures.forEach(f=>console.error(f));
+    console.groupEnd();
+  }
+})();
+
+// ——————————— INICIAR ———————————
+els.startBtn.addEventListener('click', ()=>{
+  const topics=getSelectedTopics();
+  let pool=BANK.filter(q=>topics.includes(q.topic));
+  if(pool.length===0){ alert('Seleciona pelo menos um tema.'); return; }
+  const n=Math.min(Math.max(parseInt(els.numQuestions.value||'50',10),5), pool.length);
+  questions=shuffle([...pool]).slice(0,n);
+  answers=Array(n).fill(null);
+  current=0; startTime=Date.now(); finishedByTimeout=false;
+  const minutes=Math.min(Math.max(parseInt(els.timeLimit.value||'90',10),5),180);
+  deadline=startTime+minutes*60*1000;
+  els.qTotal.textContent=n;
+  els.quiz.classList.remove('hidden');
+  els.results.classList.add('hidden');
+  renderQuestion();
+  tickTimer();
+});
+
+// ——————————— RENDER QUESTÃO ———————————
+function renderQuestion(){
+  const q=questions[current];
+  els.qIndex.textContent=current+1;
+  els.questionText.innerHTML = q.q + '<br><span class="text-sm text-slate-500">(tema: '+q.topic+')</span>';
+  els.choices.innerHTML='';
+  els.explanation.classList.add('hidden');
+  q.choices.forEach((text,idx)=>{
+    const li=document.createElement('li');
+    const selected=answers[current]===idx;
+    li.innerHTML='<button class="choice w-full text-left border rounded-xl p-3" data-idx="'+idx+'"><div class="flex items-start gap-3"><span class="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border">'+String.fromCharCode(65+idx)+'</span><span>'+text+'</span></div></button>';
+    const btn=li.querySelector('button');
+    if(selected){ btn.classList.add('ring-2','ring-slate-400'); }
+    btn.addEventListener('click', ()=>selectAnswer(idx));
+    els.choices.appendChild(li);
+  });
+  els.prevBtn.disabled=current===0;
+  els.nextBtn.textContent=current===questions.length-1?'Terminar':'Seguinte';
+}
+
+function selectAnswer(idx){
+  answers[current]=idx;
+  if(mode==='practice'){
+    const q=questions[current];
+    const nodes=els.choices.querySelectorAll('button.choice');
+    nodes.forEach((b,i)=>{
+      b.classList.remove('correct','incorrect','ring-2','ring-slate-400');
+      if(i===q.answer){ b.classList.add('correct'); }
+      if(i===idx && idx!==q.answer){ b.classList.add('incorrect'); }
+    });
+    els.explanation.textContent=q.explain;
+    els.explanation.classList.remove('hidden');
+  }
+}
+
+els.prevBtn.addEventListener('click', ()=>{ if(current>0){ current--; renderQuestion(); }});
+els.nextBtn.addEventListener('click', ()=>{ if(current<questions.length-1){ current++; renderQuestion(); } else { finish(); }});
+
+// ——————————— TERMINAR ———————————
+function finish(){
+  const total=questions.length; let correct=0; const lines=[];
+  questions.forEach((q,i)=>{
+    const ok=answers[i]===q.answer; if(ok) correct++;
+    lines.push(`${i+1}. ${q.q}\nSua resposta: ${answers[i]!=null?String.fromCharCode(65+answers[i]):'-'} | Correta: ${String.fromCharCode(65+q.answer)}\nExplicação: ${q.explain}\n`);
+  });
+  const pct=Math.round(100*correct/total);
+  els.score.textContent=`${correct}/${total} (${pct}%)${finishedByTimeout?' — tempo esgotado':''}`;
+  // tempo utilizado
+  const usedSec=Math.floor(((deadline && Date.now()>deadline)? (deadline-startTime):(Date.now()-startTime))/1000);
+  const um=String(Math.floor(usedSec/60)).padStart(2,'0');
+  const us=String(usedSec%60).padStart(2,'0');
+  els.timeUsed.textContent=`${um}:${us}`;
+
+  els.review.innerHTML='';
+  questions.forEach((q,i)=>{
+    const ok=answers[i]===q.answer; const card=document.createElement('div');
+    card.className=`p-4 rounded-xl border ${ok?'border-emerald-300 bg-emerald-50':'border-rose-300 bg-rose-50'}`;
+    card.innerHTML=`<div class="text-sm text-slate-500">${q.topic}</div>
+      <div class="font-medium">${i+1}. ${q.q}</div>
+      <div class="mt-2">Resposta dada: <strong>${answers[i]!=null?String.fromCharCode(65+answers[i]):'-'}</strong> · Correta: <strong>${String.fromCharCode(65+q.answer)}</strong></div>
+      <div class="mt-2 text-slate-700 text-sm">${q.explain}</div>`;
+    els.review.appendChild(card);
+  });
+
+  els.exportBtn.onclick=()=>{
+    const header=`Pontuação: ${correct}/${total} (${pct}%)\nTempo: ${els.timeUsed.textContent}${finishedByTimeout?' (tempo esgotado)':''}\n\n`;
+    const blob=new Blob([header+lines.join('\n')],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='correcao_exame_intermediario.txt'; a.click(); URL.revokeObjectURL(a.href);
+  };
+
+  els.quiz.classList.add('hidden'); els.results.classList.remove('hidden');
+}
+
+// ——————————— RELÓGIO ———————————
+function tickTimer(){
+  if(!startTime) return;
+  const now=Date.now();
+  if(deadline){
+    const remain=Math.max(0, Math.floor((deadline-now)/1000));
+    const mm=String(Math.floor(remain/60)).padStart(2,'0');
+    const ss=String(remain%60).padStart(2,'0');
+    els.timer.textContent=`Tempo restante: ${mm}:${ss}`;
+    if(remain<=0 && !finishedByTimeout){ finishedByTimeout=true; finish(); return; }
+  } else {
+    const sec=Math.floor((now-startTime)/1000);
+    const mm=String(Math.floor(sec/60)).padStart(2,'0');
+    const ss=String(sec%60).padStart(2,'0');
+    els.timer.textContent=`Tempo: ${mm}:${ss}`;
+  }
+  requestAnimationFrame(tickTimer);
+}
+
+// ——————————— REINICIAR ———————————
+els.retryBtn.addEventListener('click', ()=>{
+  els.results.classList.add('hidden');
+  els.quiz.classList.add('hidden');
+  updateTotalCount();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+// inicializar contagem
+els.totalCount.textContent=BANK.length; updateTotalCount();
+</script>
+</body>
+</html>
