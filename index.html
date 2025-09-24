@@ -171,6 +171,41 @@ const BANK = [];
     ['Mercado PT','Planos de amortização usuais:',['Constantes, progressivas, mistas','Só bullet','Só balloon','Só bullet anual'],0,'Modalidades mais comuns.']
   ];
   novas.forEach((e,i)=>push({id:45+i, topic:e[0], q:e[1], choices:e[2], answer:e[3], explain:e[4]}));
+
+  // (61–80) mais questões com base nos PDFs anexos
+  const mais=[
+    // Seguro de Vida — Conteúdo mínimo e regras legais
+    ['Seguro de vida','O contrato de seguro de vida associado ao crédito à habitação pode produzir efeitos antes do contrato de crédito?',['Sim, desde que o cliente aceite','Não, nunca pode iniciar antes do crédito','Apenas se houver sinistro','Depende da seguradora'],1,'A lei impede efeitos antes do início do contrato de crédito; cessa com o crédito salvo sinistro.'],
+    ['Seguro de vida','Em amortização antecipada do crédito, pode existir penalização por resolução do seguro de vida?',['Sim, comissão fixa','Não é permitida penalização','Só acima de 50% do prazo','Depende do MTIC'],1,'São proibidas cláusulas de penalização por resolução do seguro em amortização antecipada.'],
+    ['Seguro de vida','Quando o crédito é transferido para outra instituição e o mutuário quer manter o mesmo seguro de vida:',['É proibido','Só com seguro novo','Pode manter com declaração expressa do mutuário','A seguradora escolhe'],2,'Pode manter-se como garantia no novo contrato mediante declaração do mutuário.'],
+    ['Seguro de vida','O capital seguro deve:',['Ser igual ao capital em dívida ao longo da vigência','Ser superior a 150%','Manter-se fixo','Seguir a TAEG'],0,'O capital acompanha o capital em dívida.'],
+    ['Seguro de vida','Com dois mutuários, a regra é:',['Dois seguros obrigatórios e separados','Cobertura conjunta pode ser repartida (ex.: 50%/50%) somando 100%','Apenas um precisa de seguro','Cobertura máxima 30% por pessoa'],1,'Pode ser 100%/100% ou repartida; a soma deve cobrir 100% da dívida.'],
+    ['Seguro de vida','O beneficiário credor típico é:',['Herdeiros','Instituição de crédito até ao montante em dívida','Estado','Segurado'],1,'O banco é beneficiário até ao montante em dívida.'],
+    ['Seguro de vida','O seguro de incêndio é legalmente obrigatório:',['Sempre','Só quando existe propriedade horizontal','Nunca','Apenas para imóveis rurais'],1,'Seguro de incêndio obrigatório em propriedade horizontal; usualmente exigido como garantia.'],
+
+    // Regimes bonificados — TRCB e bonificação
+    ['Regimes bonificados','A TRCB tem vigência:',['Mensal','Trimestral','Semestral (início a 1 de janeiro e 1 de julho)','Anual'],2,'Vigência semestral com datas de início legalmente definidas.'],
+    ['Regimes bonificados','Regra geral para apurar TRCB:',['Euribor 6 meses do 1.º dia útil do mês anterior + 0,5%','Média Euribor 12M dos 6 meses','Taxa BCE + 2%','Spread médio de mercado'],0,'É usada Euribor 6M do 1.º dia útil do mês anterior acrescida de 0,5 p.p.'],
+    ['Regimes bonificados','Se a taxa do banco for menor que a TRCB:',['Usa-se sempre a TRCB mais alta','A taxa mais baixa passa a ser a de referência','Soma-se 0,25%','Ignora-se a bonificação'],1,'Prevalece a taxa mais baixa como referência para a bonificação.'],
+    ['Regimes bonificados','Bonificação decrescente significa:',['Apoio igual todo o prazo','Apoio aumenta no fim','Apoio do Estado diminui ao longo do prazo','Sem impacto na prestação'],2,'A percentagem de bonificação vai diminuindo com o tempo.'],
+    ['Regimes bonificados','Exemplo típico: taxa banco 6%, bonificação 44%, TRCB 6,5%. Taxa para o cliente:',['6%','3,36%','4,14%','6,5%'],1,'Como a taxa banco < TRCB, cliente suporta 56% de 6% = 3,36%.'],
+    ['Regimes bonificados','Exemplo: taxa banco 7%, bonificação 44%, TRCB 6,5%. Taxa para o cliente:',['3,36%','7%','4,14%','6,5%'],2,'Cliente suporta 56% da TRCB (6,5%) + diferença (0,5%) ⇒ 4,14%.'],
+
+    // Custos/Comissões e TAEG/MTIC
+    ['Crédito em geral','MTIC deve constar:',['Apenas na publicidade','Na FIN (consumo) e FINE (habitação) e publicidade com taxas','Só no contrato final','Só se cliente pedir'],1,'MTIC é obrigatório na informação pré‑contratual e publicidade com taxas.'],
+    ['Mercado PT','Comissões proibidas incluem (habitação/consumo):',['Processamento de prestações, distrate, certas declarações, renegociação','Avaliação do imóvel','Imposto do selo','Prestação'],0,'Conjunto de comissões vedadas por lei.'],
+    ['Crédito em geral','TAEG serve para:',['Comparar propostas refletindo custo total','Calcular Euribor','Fixar spreads','Apurar DSTI'],0,'Mede custo efetivo global permitindo comparação.'],
+
+    // Garantias
+    ['Garantias','A hipoteca torna-se eficaz perante terceiros quando:',['Há escritura apenas','Após registo da hipoteca','Após pagamento da comissão','Ao fim de 30 dias'],1,'É necessário o registo para eficácia perante terceiros.'],
+    ['Garantias','Prioridade entre hipotecas sobre o mesmo bem:',['Por valor','Por data da escritura','Por prioridade do registo','Por vontade do credor'],2,'A hierarquia assenta na prioridade do registo.'],
+    ['Garantias','Venda do imóvel hipotecado sem liquidação e sem cancelamento:',['Hipoteca extingue-se','Hipoteca acompanha o bem','Credor perde garantia','Nada acontece'],1,'A hipoteca acompanha o bem (direito acessório).'],
+    ['Garantias','Fiança em contrato civil permite:',['Benefício de excussão prévia','Nenhum benefício','Extinção da dívida','Transferência da hipoteca'],0,'No civil, a responsabilidade é subsidiária salvo renúncia; no comercial é solidária.'],
+
+    // FINE/Informação pré‑contratual
+    ['Mercado PT','A FINE/FIN deve:',['Ser entregue antes da contratação com informação essencial','Ser facultativa','Substituir o contrato','Conter apenas TIN'],0,'Documento padronizado para comparação e decisão.']
+  ];
+  let nextId=61; mais.forEach(e=>push({id:nextId++, topic:e[0], q:e[1], choices:e[2], answer:e[3], explain:e[4]}));
 })();
 
 // ——————————— SELF-TESTS (testes automáticos) ———————————
