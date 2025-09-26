@@ -107,7 +107,7 @@ const BANK = [];
   push({id:4, topic:'Crédito em geral', q:'No método francês (prestações constantes), a prestação:', choices:['Diminui ao longo do tempo.','Aumenta ao longo do tempo.','Mantém-se constante; os juros descem e o capital sobe na composição.','É sempre igual à componente de juros.'], answer:2, explain:'A prestação é constante; a proporção de juros decresce à medida que se amortiza capital.'});
   push({id:5, topic:'Mercado PT', q:'Quem supervisiona os intermediários de crédito em Portugal?', choices:['Banco de Portugal','CMVM','ASF','Direção-Geral do Consumidor'], answer:0, explain:'O Banco de Portugal autoriza e supervisiona a intermediação de crédito.'});
   push({id:6, topic:'Mercado PT', q:'A Central de Responsabilidades de Crédito (CRC) serve para:', choices:['Definir taxas máximas.','Registar responsabilidades de crédito dos clientes.','Emitir seguros de crédito.','Calcular a TAEG.'], answer:1, explain:'Agrega informação de responsabilidades para avaliação de risco.'});
-  push({id:7, topic:'Mercado PT', q:'Limites máximos de TAEG no crédito ao consumo são publicados:', choices:['Semestralmente pela CMVM.','Mensalmente pelo BdP.','Trimestralmente pelo BdP.','Anualmente pelo MF.'], answer:2, explain:'O Banco de Portugal publica trimesralmente por categoria de contrato.'});
+  push({id:7, topic:'Mercado PT', q:'Limites máximos de TAEG no crédito ao consumo são publicados:', choices:['Semestralmente pela CMVM.','Mensalmente pelo BdP.','Trimestralmente pelo BdP.','Anualmente pelo MF.'], answer:2, explain:'O Banco de Portugal publica trimestralmente por categoria de contrato.'});
   push({id:8, topic:'Mercado PT', q:'A FINE é:', choices:['Documento comercial sem força.','Proposta do intermediário.','Documento padronizado com informações essenciais para comparar propostas.','Relatório interno de risco.'], answer:2, explain:'Permite comparar TAEG, MTIC, comissões, prazos e outras condições.'});
   push({id:9, topic:'Regimes bonificados', q:'A bonificação traduz-se em:', choices:['Redução de spread pelo cliente.','Apoio estatal que reduz a taxa efetiva segundo critérios.','Isenção de comissões.','Capitalização de juros.'], answer:1, explain:'Apoio do Estado reduzindo a taxa efetiva quando elegível.'});
   push({id:10, topic:'Regimes bonificados', q:"Quando a taxa sobe acima do 'tecto' do regime, a prestação:", choices:['Aumenta ilimitadamente.','É limitada pelo tecto/limiar conforme regras.','Passa a taxa fixa.','Fica em carência de capital.'], answer:1, explain:'Limiares atenuam subidas conforme diploma.'});
@@ -122,7 +122,7 @@ const BANK = [];
   push({id:19, topic:'Glossário', q:'TIN é:', choices:['Taxa com todos os encargos','Taxa anual sobre capital, sem comissões/impostos','Taxa efetiva anual (TAEG)','Taxa mensal obrigatória'], answer:1, explain:'TIN não inclui comissões/impostos.'});
   push({id:20, topic:'Glossário', q:'LTV representa:', choices:['Prestação/rendimento','Capital em dívida/valor do imóvel','Total de juros','Valor máximo do MTIC'], answer:1, explain:'Rácio dívida/garantia.'});
 
-  // extras 21–44 (abreviado mas completo)
+  // extras 21–44
   const extras=[
     ['Deveres do intermediário','Antes da contratação deve:',['Celebrar contrato pelo cliente','Prestar informação clara (FINE) e avaliar adequabilidade','Conceder bonificação automática','Isentar imposto do selo'],1,'Informar, comparar e avaliar suitability.'],
     ['Deveres do intermediário','Remunerações:',['Omitir incentivos','Divulgar comissões e quem as paga','Cobrar sempre ao cliente','Fixar TAEG'],1,'Transparência obrigatória.'],
@@ -172,7 +172,7 @@ const BANK = [];
   ];
   novas.forEach((e,i)=>push({id:45+i, topic:e[0], q:e[1], choices:e[2], answer:e[3], explain:e[4]}));
 
-  // (61–80) mais questões com base nos PDFs anexos
+  // (61–80) mais questões com base nos PDFs
   const mais=[
     // Seguro de Vida — Conteúdo mínimo e regras legais
     ['Seguro de vida','O contrato de seguro de vida associado ao crédito à habitação pode produzir efeitos antes do contrato de crédito?',['Sim, desde que o cliente aceite','Não, nunca pode iniciar antes do crédito','Apenas se houver sinistro','Depende da seguradora'],1,'A lei impede efeitos antes do início do contrato de crédito; cessa com o crédito salvo sinistro.'],
@@ -192,7 +192,7 @@ const BANK = [];
     ['Regimes bonificados','Exemplo: taxa banco 7%, bonificação 44%, TRCB 6,5%. Taxa para o cliente:',['3,36%','7%','4,14%','6,5%'],2,'Cliente suporta 56% da TRCB (6,5%) + diferença (0,5%) ⇒ 4,14%.'],
 
     // Custos/Comissões e TAEG/MTIC
-    ['Crédito em geral','MTIC deve constar:',['Apenas na publicidade','Na FIN (consumo) e FINE (habitação) e publicidade com taxas','Só no contrato final','Só se cliente pedir'],1,'MTIC é obrigatório na informação pré‑contratual e publicidade com taxas.'],
+    ['Crédito em geral','MTIC deve constar:',['Apenas na publicidade','Na FIN (consumo) e FINE (habitação) e publicidade com taxas','Só no contrato final','Só se cliente pedir'],1,'MTIC é obrigatório na informação pré-contratual e publicidade com taxas.'],
     ['Mercado PT','Comissões proibidas incluem (habitação/consumo):',['Processamento de prestações, distrate, certas declarações, renegociação','Avaliação do imóvel','Imposto do selo','Prestação'],0,'Conjunto de comissões vedadas por lei.'],
     ['Crédito em geral','TAEG serve para:',['Comparar propostas refletindo custo total','Calcular Euribor','Fixar spreads','Apurar DSTI'],0,'Mede custo efetivo global permitindo comparação.'],
 
@@ -202,7 +202,7 @@ const BANK = [];
     ['Garantias','Venda do imóvel hipotecado sem liquidação e sem cancelamento:',['Hipoteca extingue-se','Hipoteca acompanha o bem','Credor perde garantia','Nada acontece'],1,'A hipoteca acompanha o bem (direito acessório).'],
     ['Garantias','Fiança em contrato civil permite:',['Benefício de excussão prévia','Nenhum benefício','Extinção da dívida','Transferência da hipoteca'],0,'No civil, a responsabilidade é subsidiária salvo renúncia; no comercial é solidária.'],
 
-    // FINE/Informação pré‑contratual
+    // FINE/Informação pré-contratual
     ['Mercado PT','A FINE/FIN deve:',['Ser entregue antes da contratação com informação essencial','Ser facultativa','Substituir o contrato','Conter apenas TIN'],0,'Documento padronizado para comparação e decisão.']
   ];
   let nextId=61; mais.forEach(e=>push({id:nextId++, topic:e[0], q:e[1], choices:e[2], answer:e[3], explain:e[4]}));
@@ -212,7 +212,7 @@ const BANK = [];
 function runSelfTests(){
   const failures=[];
   // T1: banco tem tamanho esperado e >0
-  if(!(BANK.length>=44)) failures.push(`T1: Tamanho inesperado do banco (${BANK.length}).`);
+  if(!(BANK.length>=80)) failures.push(`T1: Tamanho inesperado do banco (${BANK.length}).`);
   // T2: cada questão tem 4 escolhas e índice correto
   BANK.forEach((q,idx)=>{
     if(!q || typeof q.q!=="string" || !Array.isArray(q.choices)) failures.push(`T2.${idx}: Formato inválido.`);
@@ -307,12 +307,12 @@ els.mode.addEventListener('change', e=>{ mode=e.target.value; });
   const t=runSelfTests();
   els.testBadge.classList.remove('hidden');
   if(t.ok){
-    els.testBadge.textContent='Self‑tests: OK';
+    els.testBadge.textContent='Self-tests: OK';
     els.testBadge.className+=' bg-emerald-100 text-emerald-700';
   } else {
-    els.testBadge.textContent='Self‑tests: FAIL ('+t.failures.length+')';
+    els.testBadge.textContent='Self-tests: FAIL ('+t.failures.length+')';
     els.testBadge.className+=' bg-rose-100 text-rose-700';
-    console.group('Self‑tests — detalhes');
+    console.group('Self-tests — detalhes');
     t.failures.forEach(f=>console.error(f));
     console.groupEnd();
   }
